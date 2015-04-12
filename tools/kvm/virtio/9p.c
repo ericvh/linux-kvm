@@ -584,8 +584,14 @@ static void virtio_p9_getattr(struct p9_dev *p9dev,
 
 	virtio_p9_pdu_readf(pdu, "dq", &fid_val, &request_mask);
 	fid = get_fid(p9dev, fid_val);
-	if (lstat(fid->abs_path, &st) < 0)
-		goto err_out;
+
+	if(fid->fd > 0) {
+		if(fstat(fid->fd, &st) < 0)
+			goto err_out;
+	} else {
+		if (lstat(fid->abs_path, &st) < 0)
+			goto err_out;
+	}
 
 	virtio_p9_fill_stat(p9dev, &st, &statl);
 	virtio_p9_pdu_writef(pdu, "A", &statl);
